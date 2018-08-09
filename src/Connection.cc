@@ -36,7 +36,12 @@ Connection::Connection() :
 
 Connection::~Connection()
 {
-  this->CloseConnection();
+
+	if (this->connectionHandle != nullptr) {
+		RFC_ERROR_INFO errorInfo;
+		memset(&errorInfo, 0, sizeof(RFC_ERROR_INFO));
+		RfcCloseConnection(this->connectionHandle, &errorInfo);
+	}
 
   uv_mutex_destroy(&this->invocationMutex);
 
@@ -201,6 +206,7 @@ v8::Local<v8::Value> Connection::CloseConnection(void)
 
   if (this->connectionHandle != nullptr) {
     rc = RfcCloseConnection(this->connectionHandle, &errorInfo);
+		this->connectionHandle = nullptr;
     if (rc != RFC_OK) {
       scope.Escape(RfcError(errorInfo));
     }
