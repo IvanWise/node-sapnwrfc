@@ -56,7 +56,7 @@ v8::Local<v8::Value> Function::NewInstance(Connection &connection, const Nan::NA
   RFC_RC rc = RFC_OK;
   RFC_ERROR_INFO errorInfo;
 
-  v8::Local<v8::Object> func = Nan::New(ctor)->NewInstance();
+  v8::Local<v8::Object> func = Nan::NewInstance(Nan::New<v8::Function>(ctor)).ToLocalChecked();
   Function *self = node::ObjectWrap::Unwrap<Function>(func);
 
   // Save connection
@@ -653,7 +653,7 @@ v8::Local<v8::Value> Function::IntToExternal(const CHND container, const SAP_UC 
   if (!value->IsInt32()) {
     return ESCAPE_RFC_ERROR("Argument has unexpected type: ", name);
   }
-  RFC_INT rfcValue = value->ToInt32()->Value();
+  RFC_INT rfcValue = value->Int32Value();
 
   rc = RfcSetInt(container, name, rfcValue, &errorInfo);
   if (rc != RFC_OK) {
@@ -672,7 +672,7 @@ v8::Local<v8::Value> Function::Int1ToExternal(const CHND container, const SAP_UC
   if (!value->IsInt32()) {
     return ESCAPE_RFC_ERROR("Argument has unexpected type: ", name);
   }
-  int32_t convertedValue = value->ToInt32()->Value();
+  int32_t convertedValue = value->Int32Value();
   if ((convertedValue < INT8_MIN) || (convertedValue > INT8_MAX)) {
     return ESCAPE_RFC_ERROR("Argument out of range: ", name);
   }
@@ -696,7 +696,7 @@ v8::Local<v8::Value> Function::Int2ToExternal(const CHND container, const SAP_UC
     return ESCAPE_RFC_ERROR("Argument has unexpected type: ", name);
   }
 
-  int32_t convertedValue = value->ToInt32()->Value();
+  int32_t convertedValue = value->Int32Value();
   if ((convertedValue < INT16_MIN) || (convertedValue > INT16_MAX)) {
     return ESCAPE_RFC_ERROR("Argument out of range: ", name);
   }
@@ -719,7 +719,7 @@ v8::Local<v8::Value> Function::FloatToExternal(const CHND container, const SAP_U
   if (!value->IsNumber()) {
     return ESCAPE_RFC_ERROR("Argument has unexpected type: ", name);
   }
-  RFC_FLOAT rfcValue = value->ToNumber()->Value();
+  RFC_FLOAT rfcValue = value->NumberValue();
 
   rc = RfcSetFloat(container, name, rfcValue, &errorInfo);
   if (rc != RFC_OK) {
@@ -1195,7 +1195,7 @@ v8::Local<v8::Value> Function::BCDToInternal(const CHND container, const SAP_UC 
 
   free(buffer);
 
-  return scope.Escape(value->ToNumber());
+  return scope.Escape(Nan::To<v8::Number>(value).ToLocalChecked());
 }
 
 std::string Function::mapExternalTypeToJavaScriptType(RFCTYPE sapType)
